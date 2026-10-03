@@ -1,0 +1,48 @@
+{
+  "domain": "mcx.test",
+  "issuer": "https://idms.mcx.test",
+  "server_secret": "fake-server-secret",
+  "users": [
+    {
+      "username": "alice",
+      "password": "fake-password-a",
+      "mc_id": "sip:alice.mc@mcx.test",
+      "mcptt_id": "sip:alice.mcptt@mcx.test",
+      "sip_uri": "sip:alice@mcx.test",
+      "sip_password": "fake-sip-a",
+      "client_id": "urn:uuid:00000000-0000-0000-0000-00000000000a",
+      "groups": ["sip:operations@mcx.test"],
+      "private_call": {"allow": true, "automatic_commencement": true, "targets": ["sip:bob.mcptt@mcx.test"]},
+      "adhoc_call": {"allow": true},
+      "regroup": true,
+      "max_affiliations": 3,
+      "mcdata_id": "sip:alice.mcdata@mcx.test",
+      "mcdata": {"transmit_data": true},
+      "mcvideo_id": "sip:alice.mcvideo@mcx.test",
+      "mcvideo": {"private_call": {"allow": true}},
+      "location": {"report": true},
+      "profile_index": 2
+    },
+    {
+      "username": "bob",
+      "password": "fake-password-b",
+      "mc_id": "sip:bob.mc@mcx.test",
+      "mcptt_id": "sip:bob.mcptt@mcx.test",
+      "sip_uri": "sip:bob@mcx.test",
+      "sip_password": "fake-sip-b",
+      "client_id": "urn:uuid:00000000-0000-0000-0000-00000000000b",
+      "groups": ["sip:operations@mcx.test"],
+      "group_management": {"create": true, "manage": ["*"]}
+    }
+  ],
+  "groups": [
+    {
+      "id": "sip:operations@mcx.test",
+      "members": ["sip:alice.mcptt@mcx.test", "sip:bob.mcptt@mcx.test"],
+      "protect_media": false,
+      "protect_floor": false,
+      "call_policy": {"end_when_initiator_leaves": true},
+      "mcvideo": {"members": ["sip:alice.mcvideo@mcx.test"]}
+    }
+  ]
+}

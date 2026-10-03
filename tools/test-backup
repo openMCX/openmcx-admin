@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Proves a backup restores the same store: seeds a store with mcxadmin-server --import
+# on a throwaway MySQL 8.0, commits nothing else, backs it up, drops the database,
+# restores it and compares every table's rows. Nothing is installed on the host.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+net=mcxadmin-backup-$$ work=$(mktemp -d)
+cleanup() { docker rm -f "$net-mysql" >/dev/null 2>&1 || true; docker network rm "$net" >/dev/null 2>&1 || true; rm -rf "$work"; }
+trap cleanup EXIT
+docker network create "$net" >/dev/null
+docker run -d --name "$net-mysql" --network "$net" -e MYSQL_ROOT_PASSWORD=test-only -e MYSQL_ROOT_HOST=% mysql:8.0 >/dev/null
+docker exec "$net-mysql" sh -c 'mkdir -p /run/secrets && printf test-only > /run/secrets/mysql-root-password'
+for _ in $(seq 1 90); do docker exec "$net-mysql" mysql -h127.0.0.1 -uroot -ptest-only -e 'SELECT 1' >/dev/null 2>&1 && break; sleep 2; done
+docker exec "$net-mysql" mysql -h127.0.0.1 -uroot -ptest-only -e 'CREATE DATABASE mcxadmin' 2>/dev/null
+printf 'root:test-only@tcp(%s:3306)/mcxadmin?parseTime=true' "$net-mysql" > "$work/dsn"
+printf '{"listen":":8443","domain":"mcx.test","mysql_dsn_file":"/work/dsn","idms":{"url":"https://idms","client_id":"c","secret_file":"/work/none"}}' > "$work/config.json"
+chmod -R a+rX "$work"
+docker run --rm --user "$(id -u):$(id -g)" --network "$net" -e HOME=/tmp -e GOCACHE=/gopath/cache -e GOPATH=/gopath -e GOTOOLCHAIN=local \
+  -e GOFLAGS=-modcacherw -v mcxadmin-gopath:/gopath -v "$PWD:/src" -v "$work:/work" -w /src openmcx-dev:0.1 \
+  bash -lc 'go run ./cmd/mcxadmin-server --config /work/config.json --import internal/config/testdata/site.json'
+snapshot() {
+  docker exec "$net-mysql" sh -c 'for t in schema_migrations revisions outbox audit activations gms_versions write_lock; do
+    echo "== $t"; mysql -h127.0.0.1 -uroot -ptest-only -N -D mcxadmin -e "SELECT * FROM $t ORDER BY 1" 2>/dev/null; done'
+}
+snapshot > "$work/before"
+tools/backup "$net-mysql" "$work/backup.sql"
+docker exec "$net-mysql" mysql -h127.0.0.1 -uroot -ptest-only -e 'DROP DATABASE mcxadmin' 2>/dev/null
+tools/restore "$net-mysql" "$work/backup.sql"
+snapshot > "$work/after"
+if ! diff -q "$work/before" "$work/after" >/dev/null; then diff "$work/before" "$work/after" | head -20; echo "FAIL: the restored store differs"; exit 1; fi
+grep -q "^== revisions" "$work/after" && [ "$(sed -n '/^== revisions/,/^== outbox/p' "$work/after" | wc -l)" -ge 3 ] || { echo "FAIL: no revision in the store"; exit 1; }
+if grep -qiE 'password"|access_token|BEGIN (RSA|EC|PRIVATE)' "$work/backup.sql"; then echo "FAIL: a secret in the backup"; exit 1; fi
+echo "PASS: backup and restore give the same store; no secret in the backup"

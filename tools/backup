@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Backs up the MCX Admin store (its own database on the MySQL it shares) to a file:
+# a consistent snapshot of revisions, outbox, audit, activations and GMS versions.
+# It holds no password, key or token: MCX Admin stores none (docs/OPERATIONS.md).
+#   tools/backup <mysql container> <out.sql> [database, default mcxadmin]
+# The container's root password is read from /run/secrets/mysql-root-password, as
+# the lab's sip-db keeps it.
+set -euo pipefail
+[ $# -ge 2 ] || { echo "usage: tools/backup <mysql container> <out.sql> [database]" >&2; exit 2; }
+container=$1 out=$2 db=${3:-mcxadmin}
+docker exec "$container" sh -c 'MYSQL_PWD=$(cat /run/secrets/mysql-root-password) exec mysqldump -h 127.0.0.1 -u root \
+  --single-transaction --no-tablespaces --set-gtid-purged=OFF --databases "$1"' sh "$db" > "$out.tmp"
+mv "$out.tmp" "$out"
+echo "backed up $db to $out ($(wc -c < "$out") bytes)"

@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>openMCX Admin</title>
+<link rel="icon" href="/ui/static/logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/ui/static/app.css">
+<script src="/ui/static/app.js" defer></script>
+</head>
+<body>
+<template id="logo-tpl">
+  <svg class="logo-mark" width="57" height="57" viewBox="0 0 38 38" role="img" aria-label="openMCX">
+    <rect width="38" height="38" rx="8" class="logo-bg"/>
+    <text x="19" y="17" text-anchor="middle" class="logo-small">open</text>
+    <text x="19" y="29" text-anchor="middle" class="logo-big">MCX</text>
+  </svg>
+</template>
+
+<!-- Signed out -->
+<section id="signin" class="signin" hidden>
+  <div class="signin-card">
+    <div class="logo"><span data-logo></span><div><b>openMCX</b><small>Admin</small></div></div>
+    <h1>Sign in</h1>
+    <p class="sub">With your MC account at the IdMS. Only users with configuration management rights can sign in.</p>
+    <p id="signin-msg" class="msg" hidden></p>
+    <a class="button primary" href="/ui/login" id="signin-go">Sign in with IdMS</a>
+  </div>
+</section>
+
+<!-- Signed in -->
+<div id="app" class="shell" hidden>
+  <nav class="side" aria-label="Sections">
+    <div class="logo"><span data-logo></span><div><b>openMCX</b><small>Admin</small></div></div>
+    <ul id="menu">
+      <li><a href="#dashboard" data-view="dashboard">Dashboard</a></li>
+      <li><a href="#users" data-view="users">Users <span class="tag" id="user-count"></span></a></li>
+      <li><a href="#groups" data-view="groups">Groups <span class="tag" id="group-count"></span></a></li>
+      <li><a href="#templates" data-view="templates">Templates</a></li>
+      <li><a href="#import" data-view="import">Import</a></li>
+      <li><a href="#activation" data-view="activation">Activation</a></li>
+      <li><a href="#history" data-view="history">History</a></li>
+      <li><a href="#audit" data-view="audit">Audit</a></li>
+    </ul>
+    <div class="later">
+      <h4>Later releases</h4>
+      <ul>
+        <li><span>Alerts &amp; metrics</span></li>
+        <li><span>Admin roles</span></li>
+      </ul>
+    </div>
+    <div class="who"><span>Signed in as <b id="me-login"></b></span><span id="me-id" class="mono"></span>
+      <button id="logout" class="small">Sign out</button></div>
+  </nav>
+
+  <main>
+    <p id="banner" class="msg bad-msg" hidden></p>
+
+    <section class="view" id="v-dashboard">
+      <header class="top">
+        <div><h1>System status</h1><p class="sub"><span id="st-domain"></span> · refreshed every 5 s · <span id="st-time"></span></p></div>
+        <span class="rev" id="st-rev"></span>
+      </header>
+      <div class="grid cols-4">
+        <div class="panel stat"><div class="l">Active users</div><div class="n" id="st-active">–</div><div class="d" id="st-inactive"></div></div>
+        <div class="panel stat"><div class="l">Registered now</div><div class="n" id="st-registered">–</div><div class="d muted" id="st-pending-note">devices at the SIP core</div></div>
+        <div class="panel stat"><div class="l">Open activation links</div><div class="n" id="st-links">–</div><div class="d muted">not used, not expired</div></div>
+        <div class="panel stat"><div class="l">Services up</div><div class="n" id="st-up">–</div><div class="bar"><i id="st-upbar"></i></div></div>
+      </div>
+      <div class="grid cols-2 gap-top">
+        <div class="panel">
+          <h2>Services <span>health check · response time</span></h2>
+          <div class="svc" id="st-services"></div>
+        </div>
+        <div class="grid stack">
+          <div class="panel">
+            <h2>Change delivery <span>per consumer</span></h2>
+            <div class="svc" id="st-delivery"></div>
+          </div>
+          <div class="panel">
+            <h2>Recent activity</h2>
+            <ul class="feed" id="st-activity"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="v-users" hidden>
+      <header class="top">
+        <div><h1>Users</h1><p class="sub">MC users of <span data-domain></span>. MCX Admin stores no passwords, keys or certificates.</p></div>
+        <button class="primary" id="new-user">New user</button>
+      </header>
+      <div class="panel">
+        <div class="toolbar">
+          <input type="search" id="q" placeholder="Search login, name or MCPTT ID" aria-label="Search users">
+          <select id="st" aria-label="Status"><option value="">All statuses</option><option>active</option><option>pending</option><option>suspended</option><option>retired</option></select>
+          <span class="spacer"></span>
+          <span class="muted" id="users-total"></span>
+        </div>
+        <div class="tablewrap">
+          <table id="users">
+            <thead><tr><th>Login</th><th>Name</th><th>MCPTT ID</th><th>Template</th><th>Status</th><th>Device</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="v-groups" hidden>
+      <header class="top">
+        <div><h1>Groups</h1><p class="sub">MCPTT, MCData and MCVideo groups of <span data-domain></span>. Changes reach the group server within seconds; members' devices are notified.</p></div>
+        <button class="primary" id="new-group">New group</button>
+      </header>
+      <div class="panel">
+        <div class="tablewrap">
+          <table id="groups">
+            <thead><tr><th>Group</th><th>Type</th><th>Members</th><th>Services</th><th>Protection</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="v-templates" hidden>
+      <header class="top">
+        <div><h1>Templates</h1><p class="sub">Named sets of rights (TS 24.484 profile sections). A user's own rights override its template's.</p></div>
+        <button class="primary" id="new-template">New template</button>
+      </header>
+      <div class="panel">
+        <div class="tablewrap">
+          <table id="templates">
+            <thead><tr><th>Template</th><th>Rights</th><th>Users</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="v-import" hidden>
+      <header class="top">
+        <div><h1>Import users</h1><p class="sub">CSV or XLSX. The whole file is checked before anything changes.</p></div>
+        <a class="button" href="/v1/upload-template.xlsx">Download template</a>
+      </header>
+      <div class="grid cols-2">
+        <div class="panel">
+          <label class="drop" id="drop" for="file"><b>Drop a file here</b> or choose one<br><span class="mono" id="file-name">no file chosen</span>
+            <input type="file" id="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>
+          <h2 class="gap-top">Preview <span id="pv-base"></span></h2>
+          <div class="tablewrap">
+            <table class="diff"><thead><tr><th>Change</th><th>Record</th><th>Detail</th></tr></thead><tbody id="pv-rows"><tr><td colspan="3" class="muted">Choose a file to see what it changes.</td></tr></tbody></table>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Summary</h2>
+          <dl class="kv" id="pv-summary"><dt>File</dt><dd>none</dd></dl>
+          <p class="note">A file with errors changes nothing. A clean file is applied in batches, one revision each, which History can roll back.</p>
+          <div class="acts gap-top"><button class="primary" id="apply" disabled>Apply</button><button id="discard" disabled>Discard</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="v-activation" hidden>
+      <header class="top">
+        <div><h1>Activate a device</h1><p class="sub">One link or QR code per device. It works once and expires.</p></div>
+      </header>
+      <div class="grid cols-2">
+        <div class="panel">
+          <div class="toolbar">
+            <select id="act-user" aria-label="User"></select>
+            <button class="primary" id="act-issue">Issue link</button>
+          </div>
+          <div id="act-result" hidden>
+            <div class="qrbox">
+              <img id="act-qr" alt="QR code of the activation link" width="200" height="200">
+              <div>
+                <dl class="kv">
+                  <dt>User</dt><dd id="act-login"></dd>
+                  <dt>Expires</dt><dd id="act-expires"></dd>
+                  <dt>Uses</dt><dd>once; a new link ends this one</dd>
+                  <dt>Holds</dt><dd>server addresses, identities, trust root, UE initial configuration (TS 24.484). No password or key.</dd>
+                </dl>
+                <p class="url mono" id="act-url"></p>
+                <div class="acts"><button id="act-copy">Copy link</button></div>
+              </div>
+            </div>
+            <p class="note">Shown once. Closing this page does not end the link; issuing a new one does.</p>
+          </div>
+          <p id="act-none" class="muted">Choose a user and issue a link.</p>
+        </div>
+        <div class="panel">
+          <h2>On the device</h2>
+          <ol class="steps">
+            <li>The user sets a password from the one-time IdMS link (Users → Password link).</li>
+            <li>Android: scan the QR code in openMCX, or open the link.</li>
+            <li>C++ client or dispatcher: <span class="mono">mcx-client --config device.json --activate &lt;link&gt; --password-file pw</span></li>
+            <li>The client signs in, and the Credential Service issues its SIP credential.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="v-history" hidden>
+      <header class="top">
+        <div><h1>History</h1><p class="sub">Every change is a revision. Rolling back makes a new revision.</p></div>
+      </header>
+      <div class="panel">
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Rev</th><th>When</th><th>By</th><th>Source</th><th>Change</th><th></th></tr></thead>
+            <tbody id="hist-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+    <section class="view" id="v-audit" hidden>
+      <header class="top">
+        <div><h1>Audit</h1><p class="sub">Who did what: sign-ins refused, links issued, activations and every change. No secret is recorded.</p></div>
+        <input type="search" id="audit-q" placeholder="Filter by actor, action or target" aria-label="Filter audit">
+      </header>
+      <div class="panel">
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>When</th><th>By</th><th>Action</th><th>Target</th><th>Revision</th><th>Detail</th></tr></thead>
+            <tbody id="audit-rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- User detail -->
+<dialog id="dlg-detail">
+  <form method="dialog">
+    <h2 id="dt-title"></h2>
+    <dl class="kv" id="dt-ids"></dl>
+    <h2 class="gap-top">Effective rights <span>template, then the user's own</span></h2>
+    <pre class="url mono" id="dt-profile"></pre>
+    <p class="note">A lost or stolen device: Revoke devices removes the user's SIP credential and records their device certificates revoked. No device of theirs registers until one is activated again; the account itself is unchanged.</p>
+    <div class="acts end"><button type="button" class="danger" id="dt-revoke">Revoke devices</button><button class="primary" value="ok">Close</button></div>
+  </form>
+</dialog>
+
+<!-- New user -->
+<dialog id="dlg-user">
+  <form method="dialog" id="form-user">
+    <h2>New user</h2>
+    <div class="form">
+      <label>Login<input id="nu-login" required pattern="[a-z0-9][a-z0-9._\-]{1,62}" autocomplete="off"></label>
+      <label>Display name<input id="nu-name" autocomplete="off"></label>
+      <label>Email<input id="nu-email" type="email" autocomplete="off"></label>
+      <label>Template<select id="nu-template"></select></label>
+      <fieldset><legend>Groups</legend><div id="nu-groups" class="checks"></div><p class="note">The user becomes a member of the groups chosen.</p></fieldset>
+      <fieldset><legend>Services</legend><div class="checks">
+        <label><input type="checkbox" checked disabled> MCPTT</label>
+        <label><input type="checkbox" id="nu-mcdata"> MCData</label>
+        <label><input type="checkbox" id="nu-mcvideo"> MCVideo</label></div></fieldset>
+      <p class="note mono" id="nu-ids"></p>
+    </div>
+    <p id="nu-error" class="msg bad-msg" hidden></p>
+    <div class="acts end"><button value="cancel" formnovalidate>Cancel</button><button class="primary" id="nu-save" value="save">Create user</button></div>
+  </form>
+</dialog>
+
+<!-- Group -->
+<dialog id="dlg-group">
+  <form method="dialog" id="form-group">
+    <h2 id="gr-title">New group</h2>
+    <div class="form">
+      <label>Name<input id="gr-name" required pattern="[a-z0-9][a-z0-9._\-]{0,62}" autocomplete="off"></label>
+      <p class="note mono" id="gr-id"></p>
+      <fieldset><legend>Members</legend>
+        <input type="search" id="gr-filter" placeholder="Filter users" aria-label="Filter users">
+        <div id="gr-members" class="checks members"></div>
+        <p class="note" id="gr-count"></p></fieldset>
+      <fieldset><legend>Services and protection</legend><div class="checks">
+        <label><input type="checkbox" checked disabled> MCPTT</label>
+        <label><input type="checkbox" id="gr-mcdata"> MCData</label>
+        <label><input type="checkbox" id="gr-mcvideo"> MCVideo</label>
+        <label><input type="checkbox" id="gr-media"> Protect media</label>
+        <label><input type="checkbox" id="gr-floor"> Protect floor control</label></div>
+        <div class="checks" id="gr-mcdata-options" hidden>
+          <label><input type="checkbox" id="gr-sds" checked> Short data (SDS)</label>
+          <label><input type="checkbox" id="gr-fd"> File distribution</label></div>
+        <p class="note">MCData and MCVideo members follow the group's members: each member's MCData or MCVideo ID, where they have the service.</p></fieldset>
+    </div>
+    <p id="gr-error" class="msg bad-msg" hidden></p>
+    <div class="acts end"><button value="cancel" formnovalidate>Cancel</button><button class="primary" id="gr-save" value="save">Save group</button></div>
+  </form>
+</dialog>
+
+<!-- Template -->
+<dialog id="dlg-template">
+  <form method="dialog" id="form-template">
+    <h2 id="tp-title">New template</h2>
+    <div class="form">
+      <label>Name<input id="tp-name" required pattern="[a-z0-9][a-z0-9._\-]{0,62}" autocomplete="off"></label>
+      <label>Rights (JSON: profile sections such as private_call, adhoc_call, mcdata)<textarea id="tp-profile" rows="12" spellcheck="false"></textarea></label>
+    </div>
+    <p id="tp-error" class="msg bad-msg" hidden></p>
+    <div class="acts end"><button value="cancel" formnovalidate>Cancel</button><button class="primary" id="tp-save" value="save">Save template</button></div>
+  </form>
+</dialog>
+
+<!-- Messages that need an action -->
+<dialog id="dlg-msg">
+  <form method="dialog">
+    <h2 id="msg-title"></h2>
+    <p id="msg-text"></p>
+    <p class="url mono" id="msg-url" hidden></p>
+    <div class="acts end"><button id="msg-copy" type="button" hidden>Copy</button><button class="primary" value="ok">Close</button></div>
+  </form>
+</dialog>
+
+<!-- Confirmation -->
+<dialog id="dlg-confirm">
+  <form method="dialog">
+    <h2 id="cf-title"></h2>
+    <p id="cf-text"></p>
+    <div class="acts end"><button value="no">Cancel</button><button class="primary" value="yes" id="cf-yes"></button></div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 38 38">
+  <rect width="38" height="38" rx="8" fill="#ffc58a"/>
+  <text x="19" y="17" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="9" font-weight="600" fill="#15171c">open</text>
+  <text x="19" y="29" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="12" font-weight="700" fill="#15171c">MCX</text>
+</svg>

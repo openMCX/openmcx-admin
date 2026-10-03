@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Builds and tests mcxadmin in the openMCX development image, with a throwaway
+# MySQL 8.0 (the lab's sip-db image) for the store and API tests. Nothing is
+# installed on the host; the Go module cache is the Docker volume mcxadmin-gopath.
+#   tools/test               all tests
+#   MCXADMIN_SITES=<dir> tools/test   also the golden check on the site.json files under <dir>
+#   MCXADMIN_LOAD=1 tools/test        also the 10,000-user load profile (TestLoad)
+set -euo pipefail
+cd "$(dirname "$0")/.."
+net=mcxadmin-test-$$
+cleanup() { docker rm -f "$net-mysql" >/dev/null 2>&1 || true; docker network rm "$net" >/dev/null 2>&1 || true; }
+trap cleanup EXIT
+docker volume create mcxadmin-gopath >/dev/null
+docker run --rm -v mcxadmin-gopath:/gopath openmcx-dev:0.1 chown "$(id -u):$(id -g)" /gopath
+docker network create "$net" >/dev/null
+docker run -d --name "$net-mysql" --network "$net" -e MYSQL_ROOT_PASSWORD=test-only -e MYSQL_ROOT_HOST=% mysql:8.0 >/dev/null
+for _ in $(seq 1 90); do
+  docker exec "$net-mysql" mysql -h127.0.0.1 -uroot -ptest-only -e 'SELECT 1' >/dev/null 2>&1 && break
+  sleep 2
+done
+sites=()
+if [ -n "${MCXADMIN_SITES:-}" ]; then sites=(-v "$(realpath "$MCXADMIN_SITES"):/sites:ro" -e MCXADMIN_SITES=/sites); fi
+docker run --rm --user "$(id -u):$(id -g)" --network "$net" -e HOME=/tmp -e GOCACHE=/gopath/cache -e GOPATH=/gopath \
+  -e GOTOOLCHAIN=local -e GOFLAGS=-modcacherw -e MCXADMIN_TEST_MYSQL="root:test-only@tcp($net-mysql:3306)/?parseTime=true" -e MCXADMIN_LOAD="${MCXADMIN_LOAD:-}" \
+  "${sites[@]}" -v mcxadmin-gopath:/gopath -v "$PWD:/src" -w /src openmcx-dev:0.1 \
+  bash -lc 'unformatted=$(gofmt -l .); if [ -n "$unformatted" ]; then echo "not gofmt-formatted: $unformatted"; exit 1; fi; go vet ./... && go build -o bin/ ./cmd/... && go test ./... -count=1'

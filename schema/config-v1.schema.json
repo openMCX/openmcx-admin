@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openMCX/openmcx-admin/schema/config-v1.schema.json",
+  "title": "MCX Admin configuration document, version 1",
+  "description": "The MC user profiles and groups of one MCX system (docs/SLICE_A.md). It carries no password, secret, key or certificate. Cross-record rules (unique identities, known groups and templates) are checked by mcxadmin validate.",
+  "type": "object",
+  "required": ["schema_version", "system", "users", "groups"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "system": {
+      "type": "object",
+      "required": ["domain"],
+      "additionalProperties": false,
+      "properties": {"domain": {"type": "string", "minLength": 1}}
+    },
+    "templates": {
+      "description": "Named partial MC user profiles; a user's profile is merged over its template's.",
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/profile"}
+    },
+    "users": {"type": "array", "items": {"$ref": "#/$defs/user"}},
+    "groups": {"type": "array", "items": {"$ref": "#/$defs/group"}}
+  },
+  "$defs": {
+    "sipURI": {"type": "string", "pattern": "^sip:"},
+    "profile": {
+      "description": "The rights sections the servers read (private_call, adhoc_call, group_call, mcdata, mcvideo, location, group_management, regroup, max_affiliations, ...).",
+      "type": "object"
+    },
+    "user": {
+      "type": "object",
+      "required": ["login", "status", "mc_id", "mcptt_id", "sip_uri", "client_ids", "groups"],
+      "additionalProperties": false,
+      "properties": {
+        "login": {"type": "string", "minLength": 1},
+        "display_name": {"type": "string"},
+        "email": {"type": "string"},
+        "status": {"enum": ["pending", "active", "suspended", "retired"]},
+        "template": {"type": "string"},
+        "mc_id": {"$ref": "#/$defs/sipURI"},
+        "mcptt_id": {"$ref": "#/$defs/sipURI"},
+        "sip_uri": {"$ref": "#/$defs/sipURI"},
+        "client_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "mcdata_id": {"$ref": "#/$defs/sipURI"},
+        "mcvideo_id": {"$ref": "#/$defs/sipURI"},
+        "groups": {"type": "array", "items": {"type": "string"}},
+        "profile": {"$ref": "#/$defs/profile"}
+      }
+    },
+    "group": {
+      "description": "A group record as the servers read it (members, policies, MCData and MCVideo settings).",
+      "type": "object",
+      "required": ["id", "members"],
+      "properties": {
+        "id": {"$ref": "#/$defs/sipURI"},
+        "members": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

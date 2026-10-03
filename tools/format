@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Format the Go code (gofmt), in the openmcx-lint image (nothing on the host).
+#   tools/format           rewrite the files
+#   tools/format --check   change nothing; list what is not formatted and fail if anything is
+set -euo pipefail
+cd "$(dirname "$0")/.."
+flag=-w; [ "${1:-}" = --check ] && flag=-l
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/src" -w /src openmcx-lint:0.1 bash -c '
+out=$(gofmt '"$flag"' $(find . -name "*.go" -not -path "./bin/*"))
+[ -z "$out" ] || { echo "Go not formatted:"; echo "$out"; exit 1; }'
