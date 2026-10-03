@@ -1,0 +1,28 @@
+openMCX Admin (MCX Admin)
+Copyright (C) 2026 the openMCX authors
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General
+Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any
+later version. See LICENSE.
+
+The source code of each published version, and of the images built from it, is at
+https://github.com/openMCX/openmcx-admin.
+
+Third-party software
+--------------------
+Built into the programs (Go modules, versions pinned in go.mod and go.sum):
+
+  Go standard library               BSD-3-Clause   https://go.dev
+  github.com/go-sql-driver/mysql    MPL-2.0        https://github.com/go-sql-driver/mysql
+  github.com/xuri/excelize/v2       BSD-3-Clause   https://github.com/qax-os/excelize
+  github.com/xuri/efp, xuri/nfp     BSD-3-Clause   https://github.com/xuri
+  github.com/richardlehane/mscfb, msoleps
+                                    Apache-2.0     https://github.com/richardlehane
+  github.com/tiendc/go-deepcopy     MIT            https://github.com/tiendc/go-deepcopy
+  filippo.io/edwards25519           BSD-3-Clause   https://github.com/FiloSottile/edwards25519
+  golang.org/x/crypto, x/net, x/text
+                                    BSD-3-Clause   https://go.googlesource.com
+  rsc.io/qr                         BSD-3-Clause   https://github.com/rsc/qr
+
+The image is Ubuntu 24.04 with its packages (curl, Python), each under its own licence
+(/usr/share/doc/*/copyright in the image).

@@ -45,3 +45,8 @@ bin/mcxadmin sheet config.json upload.xlsx rep/  # the new document and the chan
 ```
 
 The document format is `schema/config-v1.schema.json`.
+
+## Licence
+
+MCX Admin is licensed under the [GNU Affero General Public License v3.0 or later](LICENSE).
+Third-party software and its licences: [NOTICE](NOTICE).

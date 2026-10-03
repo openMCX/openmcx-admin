@@ -14,4 +14,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl python3 \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /install/ /usr/local/bin/
+COPY LICENSE NOTICE /usr/share/doc/openmcx-admin/
+LABEL org.opencontainers.image.licenses="AGPL-3.0-or-later" \
+      org.opencontainers.image.source="https://github.com/openMCX/openmcx-admin"
 ENTRYPOINT ["mcxadmin-server"]
