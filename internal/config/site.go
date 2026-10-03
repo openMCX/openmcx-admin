@@ -30,7 +30,9 @@ type ImportReport struct {
 // ------------------------------------------------------------------------------
 // ImportSite turns a site.json into a configuration document. Its users lose their
 // secrets; everything else a server
-// reads is kept as it is.
+// reads is kept as it is. An optional top-level "templates" object (name -> profile
+// sections, as the console's templates) becomes the document's templates, so that a new
+// system can start with ready-made sets of rights; the servers do not read it.
 func ImportSite(raw []byte) (*Document, ImportReport, error) {
 	var site map[string]any
 	if err := json.Unmarshal(raw, &site); err != nil {
@@ -56,13 +58,40 @@ func ImportSite(raw []byte) (*Document, ImportReport, error) {
 		}
 		doc.Groups = append(doc.Groups, clone(group))
 	}
+	if err := importTemplates(site["templates"], doc); err != nil {
+		return nil, report, err
+	}
 	for _, key := range sortedKeys(site) {
-		if key != "users" && key != "groups" && key != "domain" {
+		if key != "users" && key != "groups" && key != "domain" && key != "templates" {
 			report.SystemNotImported = append(report.SystemNotImported, key)
 		}
 	}
 	report.Users, report.Groups = len(doc.Users), len(doc.Groups)
 	return doc, report, nil
+}
+
+// ------------------------------------------------------------------------------
+// importTemplates takes the site.json "templates" object, if any: each template a name with an object of profile
+// sections (the same form as PUT /v1/templates/{name}).
+func importTemplates(value any, doc *Document) error {
+	if value == nil {
+		return nil
+	}
+	templates, ok := value.(map[string]any)
+	if !ok {
+		return fmt.Errorf("site.json: templates is not an object")
+	}
+	for _, name := range sortedKeys(templates) {
+		profile, ok := templates[name].(map[string]any)
+		if !ok {
+			return fmt.Errorf("site.json: template %q is not an object", name)
+		}
+		if doc.Templates == nil {
+			doc.Templates = map[string]map[string]any{}
+		}
+		doc.Templates[name] = clone(profile)
+	}
+	return nil
 }
 
 // ------------------------------------------------------------------------------

@@ -113,6 +113,28 @@ func TestImportRoundTripLabs(test *testing.T) {
 }
 
 // ------------------------------------------------------------------------------
+// TestImportTemplates: a site.json "templates" object becomes the document's templates, is not reported as a
+// site-level key outside the model, validates, and a template that is not an object is refused.
+func TestImportTemplates(test *testing.T) {
+	raw := []byte(`{"domain":"mcx.test","users":[],"groups":[],
+		"templates":{"phone-user":{"private_call":{"allow":true,"callable":true,"incoming_any":true},"mcdata":{"incoming_any":true}}}}`)
+	doc, report, err := ImportSite(raw)
+	if err != nil {
+		test.Fatal(err)
+	}
+	call, _ := doc.Templates["phone-user"]["private_call"].(map[string]any)
+	if call["incoming_any"] != true || len(report.SystemNotImported) != 0 {
+		test.Fatalf("templates %v, not imported %v", doc.Templates, report.SystemNotImported)
+	}
+	if problems := doc.Validate(); len(problems) > 0 {
+		test.Fatalf("problems %v", problems)
+	}
+	if _, _, err := ImportSite([]byte(`{"domain":"mcx.test","templates":{"x":1}}`)); err == nil {
+		test.Fatal("a template that is not an object was accepted")
+	}
+}
+
+// ------------------------------------------------------------------------------
 // TestValidate: a duplicate MCPTT ID, an unknown status, template or group, a secret in a profile and an unknown
 // member (MCPTT or MCData) are each reported against their record and field; a PEM value is a secret whatever its field.
 func TestValidate(test *testing.T) {
