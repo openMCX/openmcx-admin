@@ -135,6 +135,36 @@ func TestImportTemplates(test *testing.T) {
 }
 
 // ------------------------------------------------------------------------------
+// TestImportMigratesRights: a site.json from before TS 24.379 clause 6.3.3.1.13 was applied keeps its meaning: the
+// users a group's priority lists name get the profile rights, an MCData group without transmit_members transmit_all.
+func TestImportMigratesRights(test *testing.T) {
+	raw := []byte(`{"domain":"mcx.test","users":[
+		{"username":"a","mc_id":"sip:a.mc@mcx.test","mcptt_id":"sip:a@mcx.test","sip_uri":"sip:a@mcx.test","client_id":"urn:uuid:1","mcvideo_id":"sip:a.v@mcx.test"},
+		{"username":"b","mc_id":"sip:b.mc@mcx.test","mcptt_id":"sip:b@mcx.test","sip_uri":"sip:b@mcx.test","client_id":"urn:uuid:2"}],
+		"groups":[{"id":"sip:ops@mcx.test","members":["sip:a@mcx.test","sip:b@mcx.test"],
+		"priority_policy":{"emergency_users":["sip:a@mcx.test"],"alert_cancel_users":["sip:a@mcx.test"]},
+		"mcvideo":{"members":["sip:a.v@mcx.test"],"priority_policy":{"imminent_users":["sip:a.v@mcx.test"]}},
+		"mcdata":{"members":[],"sds_supported":true,"allow_sds":true}}]}`)
+	doc, _, err := ImportSite(raw)
+	if err != nil {
+		test.Fatal(err)
+	}
+	first := doc.Users[0].Profile
+	call, _ := first["group_call"].(map[string]any)
+	video, _ := first["mcvideo"].(map[string]any)
+	videoCall, _ := video["group_call"].(map[string]any)
+	if call["emergency"] != true || call["alert_cancel"] != true || videoCall["imminent"] != true {
+		test.Fatalf("rights of a: %v", first)
+	}
+	if _, granted := doc.Users[1].Profile["group_call"]; granted {
+		test.Fatalf("b was granted rights: %v", doc.Users[1].Profile)
+	}
+	if data, _ := doc.Groups[0]["mcdata"].(map[string]any); data["transmit_all"] != true {
+		test.Fatalf("mcdata %v", doc.Groups[0]["mcdata"])
+	}
+}
+
+// ------------------------------------------------------------------------------
 // TestValidate: a duplicate MCPTT ID, an unknown status, template or group, a secret in a profile and an unknown
 // member (MCPTT or MCData) are each reported against their record and field; a PEM value is a secret whatever its field.
 func TestValidate(test *testing.T) {

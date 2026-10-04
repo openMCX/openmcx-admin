@@ -281,7 +281,14 @@
         <label><input type="checkbox" id="gr-floor"> Protect floor control</label></div>
         <div class="checks" id="gr-mcdata-options" hidden>
           <label><input type="checkbox" id="gr-sds" checked> Short data (SDS)</label>
-          <label><input type="checkbox" id="gr-fd"> File distribution</label></div>
+          <label><input type="checkbox" id="gr-fd"> File distribution</label>
+          <label><input type="checkbox" id="gr-transmit" checked> Members may send messages and files</label></div>
+      <fieldset><legend>Rights in this group, for every member (TS 24.481)</legend>
+        <div class="checks">
+          <label><input type="checkbox" id="gr-emergency" checked> Emergency calls</label>
+          <label><input type="checkbox" id="gr-imminent" checked> Imminent peril calls</label>
+          <label><input type="checkbox" id="gr-alert" checked> Emergency alerts</label></div>
+        <p class="note">A member also needs the right in its own profile (its template). Lists of single members, if any, are kept.</p></fieldset>
         <p class="note">MCData and MCVideo members follow the group's members: each member's MCData or MCVideo ID, where they have the service.</p></fieldset>
     </div>
     <p id="gr-error" class="msg bad-msg" hidden></p>
@@ -295,7 +302,18 @@
     <h2 id="tp-title">New template</h2>
     <div class="form">
       <label>Name<input id="tp-name" required pattern="[a-z0-9][a-z0-9._\-]{0,62}" autocomplete="off"></label>
-      <label>Rights (JSON: profile sections such as private_call, adhoc_call, mcdata)<textarea id="tp-profile" rows="12" spellcheck="false"></textarea></label>
+      <fieldset><legend>Emergency and imminent peril (TS 24.484 user profile)</legend>
+        <div class="checks" id="tp-rights">
+          <label><input type="checkbox" data-right="emergency"> Emergency group call</label>
+          <label><input type="checkbox" data-right="emergency_cancel"> Cancel a group emergency</label>
+          <label><input type="checkbox" data-right="imminent"> Imminent peril call</label>
+          <label><input type="checkbox" data-right="imminent_cancel"> Cancel imminent peril</label>
+          <label><input type="checkbox" data-right="alert"> Emergency alert</label>
+          <label><input type="checkbox" data-right="alert_cancel"> Cancel an emergency alert</label>
+          <label><input type="checkbox" data-right="private_emergency"> Emergency private call (to any user)</label>
+        </div>
+        <p class="note">The group must allow them too (Groups → the group's rights). With MCVideo in the rights, the same apply to MCVideo.</p></fieldset>
+      <label>Rights (JSON: profile sections such as private_call, group_call, adhoc_call, mcdata, mcvideo)<textarea id="tp-profile" rows="12" spellcheck="false"></textarea></label>
     </div>
     <p id="tp-error" class="msg bad-msg" hidden></p>
     <div class="acts end"><button value="cancel" formnovalidate>Cancel</button><button class="primary" id="tp-save" value="save">Save template</button></div>

@@ -58,6 +58,7 @@ func ImportSite(raw []byte) (*Document, ImportReport, error) {
 		}
 		doc.Groups = append(doc.Groups, clone(group))
 	}
+	migrateRights(doc)
 	if err := importTemplates(site["templates"], doc); err != nil {
 		return nil, report, err
 	}
@@ -190,4 +191,83 @@ func (doc *Document) SiteUser(user User) map[string]any {
 		out["mcvideo_id"] = user.MCVideoID
 	}
 	return clone(out)
+}
+
+// ------------------------------------------------------------------------------
+// migrateRights keeps the meaning of a site.json written before the servers applied TS 24.379 and TS 24.281
+// clause 6.3.3.1.13: there, a group's priority policy lists alone decided who may raise or cancel an emergency group
+// call, an imminent peril call or an emergency alert. Now the user profile's right is needed too, so every user a
+// list names gets the matching right (group_call: emergency, imminent, alert and their cancellations; in mcvideo for
+// the MCVideo lists). An MCData group without transmit_members let every member transmit; it gets transmit_all, its
+// <mcdata-allow-transmit-data-in-this-group> for all members (TS 24.481 clause 7.2.4.2: absent means no one may).
+func migrateRights(doc *Document) {
+	for _, group := range doc.Groups {
+		video, _ := group["mcvideo"].(map[string]any)
+		for key, right := range migratedRights {
+			for _, id := range policyList(group["priority_policy"], key) {
+				grantRight(doc, func(user *User) bool { return user.MCPTTID == id }, "", right)
+			}
+			if video != nil {
+				for _, id := range policyList(video["priority_policy"], key) {
+					grantRight(doc, func(user *User) bool { return user.MCVideoID == id }, "mcvideo", right)
+				}
+			}
+		}
+		if data, _ := group["mcdata"].(map[string]any); data != nil {
+			_, listed := data["transmit_members"]
+			_, set := data["transmit_all"]
+			if !listed && !set {
+				data["transmit_all"] = true
+			}
+		}
+	}
+}
+
+// migratedRights maps a priority policy list to the group_call right of the users it names.
+var migratedRights = map[string]string{"emergency_users": "emergency", "imminent_users": "imminent",
+	"imminent_cancel_users": "imminent_cancel", "alert_users": "alert", "alert_cancel_users": "alert_cancel",
+	"emergency_cancel_users": "emergency_cancel"}
+
+// ------------------------------------------------------------------------------
+// policyList is the identities a priority policy lists under a key.
+func policyList(policy any, key string) []string {
+	table, _ := policy.(map[string]any)
+	items, _ := table[key].([]any)
+	var out []string
+	for _, item := range items {
+		if id, ok := item.(string); ok {
+			out = append(out, id)
+		}
+	}
+	return out
+}
+
+// ------------------------------------------------------------------------------
+// grantRight sets a group_call right in the profile (or its section, such as "mcvideo") of the users that match.
+func grantRight(doc *Document, match func(*User) bool, section, right string) {
+	for index := range doc.Users {
+		user := &doc.Users[index]
+		if !match(user) {
+			continue
+		}
+		if user.Profile == nil {
+			user.Profile = map[string]any{}
+		}
+		call := subsection(subsection(user.Profile, section), "group_call")
+		call[right] = true
+	}
+}
+
+// ------------------------------------------------------------------------------
+// subsection is a profile's object under a key, created when absent; the profile itself for an empty key.
+func subsection(profile map[string]any, key string) map[string]any {
+	if key == "" {
+		return profile
+	}
+	inner, _ := profile[key].(map[string]any)
+	if inner == nil {
+		inner = map[string]any{}
+		profile[key] = inner
+	}
+	return inner
 }

@@ -401,6 +401,11 @@ function openGroup(g) {
   $("gr-sds").checked = g && g.mcdata ? !!(g.mcdata.sds_supported && g.mcdata.allow_sds) : true;
   $("gr-fd").checked = !!(g && g.mcdata && g.mcdata.fd_supported && g.mcdata.allow_fd);
   $("gr-mcdata-options").hidden = !$("gr-mcdata").checked;
+  // The group's rights for every member: on for a new group.
+  $("gr-emergency").checked = g ? !!g.allow_emergency_call : true;
+  $("gr-imminent").checked = g ? !!g.allow_imminent_peril : true;
+  $("gr-alert").checked = g ? !!g.allow_emergency_alert : true;
+  $("gr-transmit").checked = g && g.mcdata ? !!g.mcdata.transmit_all : true;
   $("gr-media").checked = !!(g && g.protect_media);
   $("gr-floor").checked = !!(g && g.protect_floor);
   const chosen = new Set(g ? members(g) : []);
@@ -440,17 +445,28 @@ $("form-group").addEventListener("submit", async (e) => {
   g.members = [...chosen, ...JSON.parse($("gr-members").dataset.foreign || "[]")];
   g.protect_media = $("gr-media").checked;
   g.protect_floor = $("gr-floor").checked;
+  // TS 24.481 rules for every member: <allow-MCPTT-emergency-call>, <allow-imminent-peril-call>,
+  // <allow-MCPTT-emergency-alert> (and the MCVideo ones in the MCVideo part).
+  const rights = (target) => {
+    for (const [key, box] of [["allow_emergency_call", "gr-emergency"], ["allow_imminent_peril", "gr-imminent"], ["allow_emergency_alert", "gr-alert"]]) {
+      if ($(box).checked) target[key] = true; else delete target[key];
+    }
+  };
+  rights(g);
   if ($("gr-mcvideo").checked && !g.mcvideo) {
     // A new MCVideo part: the members who have MCVideo.
     g.mcvideo = { members: localUsers().filter((u) => chosen.includes(u.mcptt_id) && u.mcvideo_id).map((u) => u.mcvideo_id) };
   } else if (!$("gr-mcvideo").checked) {
     delete g.mcvideo;
   }
+  if (g.mcvideo) rights(g.mcvideo);
   if ($("gr-mcdata").checked) {
     // A new MCData part: the members who have MCData; its other settings stay as they are.
     if (!g.mcdata) g.mcdata = { members: localUsers().filter((u) => chosen.includes(u.mcptt_id) && u.mcdata_id).map((u) => u.mcdata_id) };
     g.mcdata.sds_supported = g.mcdata.allow_sds = $("gr-sds").checked;
     g.mcdata.fd_supported = g.mcdata.allow_fd = $("gr-fd").checked;
+    // <mcdata-allow-transmit-data-in-this-group> for every member; a list of single members is kept.
+    if ($("gr-transmit").checked) g.mcdata.transmit_all = true; else delete g.mcdata.transmit_all;
   } else {
     delete g.mcdata;
   }
@@ -497,7 +513,13 @@ function openTemplate(t) {
   $("tp-title").textContent = t ? `Edit template ${t.name}` : "New template";
   $("tp-name").value = t ? t.name : "";
   $("tp-name").disabled = !!t;
-  $("tp-profile").value = JSON.stringify(t ? t.profile : { private_call: { allow: true } }, null, 2);
+  const profile = t ? t.profile : { private_call: { allow: true } };
+  $("tp-profile").value = JSON.stringify(profile, null, 2);
+  const call = profile.group_call || {}, priv = profile.private_call || {};
+  for (const box of $("tp-rights").querySelectorAll("input")) {
+    const right = box.dataset.right;
+    box.checked = right === "private_emergency" ? !!(priv.emergency && priv.emergency_any) : !!call[right];
+  }
   $("dlg-template").showModal();
 }
 $("new-template").addEventListener("click", () => openTemplate(null));
@@ -512,6 +534,23 @@ $("form-template").addEventListener("submit", async (e) => {
   if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
     $("tp-error").hidden = false; $("tp-error").textContent = "The rights must be a JSON object of profile sections."; return;
   }
+  // The checkboxes: <allow-emergency-group-call> and the others in group_call, the emergency private call in
+  // private_call; the same in mcvideo when the template has MCVideo rights.
+  const apply = (target) => {
+    target.group_call = target.group_call || {};
+    for (const box of $("tp-rights").querySelectorAll("input")) {
+      const right = box.dataset.right;
+      if (right === "private_emergency") {
+        target.private_call = target.private_call || {};
+        if (box.checked) { target.private_call.emergency = target.private_call.emergency_any = true; }
+        else { delete target.private_call.emergency; delete target.private_call.emergency_any; }
+      } else if (box.checked) target.group_call[right] = true;
+      else delete target.group_call[right];
+    }
+    if (!Object.keys(target.group_call).length) delete target.group_call;
+  };
+  apply(profile);
+  if (profile.mcvideo && typeof profile.mcvideo === "object") apply(profile.mcvideo);
   const name = $("tp-name").value.trim();
   const r = await api("PUT", `/v1/templates/${encodeURIComponent(name)}`, { body: JSON.stringify(profile), type: "application/json", ifMatch: state.revision });
   if (r.status !== 200) {
