@@ -343,7 +343,9 @@ func TestActivation(test *testing.T) {
 	initial, _ := pkg.body["ue_initial_configuration"].(string)
 	if pkg.status != 200 || pkg.body["format"] != "openmcx-activation-1" || pkg.body["login"] != "bob" ||
 		sip["identity"] != "sip:bob@mcx.test" || mcptt["user_id"] != "sip:bob.mcptt@mcx.test" || mcptt["group_id"] != "sip:ops@mcx.test" ||
-		!strings.Contains(initial, "mcptt-UE-initial-configuration") || !strings.Contains(initial, "https://cms:8443/xcap-root") {
+		!strings.Contains(initial, "mcptt-UE-initial-configuration") || !strings.Contains(initial, "https://cms:8443/xcap-root") ||
+		!strings.Contains(initial, `<Default-user-profile User-ID="sip:bob.mcptt@mcx.test" user-profile-index="1">`) ||
+		mcptt["profile_index"] != "1" {
 		test.Fatalf("package %d %v", pkg.status, pkg.body)
 	}
 	if _, ok := pkg.body["mcdata"]; ok {

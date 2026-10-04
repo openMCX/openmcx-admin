@@ -10,6 +10,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/openMCX/openmcx-admin/internal/config"
@@ -83,7 +84,8 @@ func Package(cfg *Config, doc *config.Document, user config.User) (map[string]an
 	if len(cfg.AddressMap) > 0 {
 		out["address_map"] = cfg.AddressMap
 	}
-	initial, err := initialConfiguration(cfg, doc.System.Domain)
+	out["mcptt"].(map[string]string)["profile_index"] = strconv.Itoa(ProfileIndex(user))
+	initial, err := initialConfiguration(cfg, doc.System.Domain, user)
 	if err != nil {
 		return nil, err
 	}
@@ -95,9 +97,35 @@ func Package(cfg *Config, doc *config.Document, user config.User) (map[string]an
 // the application servers, the XCAP roots and the service identities. The lab has no PLMN or
 // document protection, so those elements carry fixed lab values.
 type ueInitialConfig struct {
-	XMLName   xml.Name    `xml:"urn:3gpp:mcptt:mcpttUEinitConfig:1.0 mcptt-UE-initial-configuration"`
-	Domain    string      `xml:"domain,attr"`
-	OnNetwork ueOnNetwork `xml:"on-network"`
+	XMLName xml.Name `xml:"urn:3gpp:mcptt:mcpttUEinitConfig:1.0 mcptt-UE-initial-configuration"`
+	Domain  string   `xml:"domain,attr"`
+	// <Default-user-profile> (TS 24.484 clause 7.2.2.1): the user's MCPTT user profile document, which the client
+	// reads at mcptt-user-profile-<index>.xml (clause 8.3.1A).
+	DefaultProfile *ueDefaultProfile `xml:"Default-user-profile,omitempty"`
+	OnNetwork      ueOnNetwork       `xml:"on-network"`
+}
+
+// TS 24.484 clause 7.2.2.3: the UserProfileType of <Default-user-profile>.
+type ueDefaultProfile struct {
+	UserID string `xml:"User-ID,attr"`
+	Index  int    `xml:"user-profile-index,attr"`
+}
+
+// ------------------------------------------------------------------------------
+// ProfileIndex is the "user-profile-index" of the user's MCPTT user profile (TS 24.484 clause 8.3.2.1): its
+// profile_index, 1 when absent, as the CMS numbers it.
+func ProfileIndex(user config.User) int {
+	switch index := user.Profile["profile_index"].(type) {
+	case float64:
+		if index >= 1 && index <= 255 {
+			return int(index)
+		}
+	case int:
+		if index >= 1 && index <= 255 {
+			return index
+		}
+	}
+	return 1
 }
 
 type ueOnNetwork struct {
@@ -148,9 +176,12 @@ type serviceDetails struct {
 // authorization and token endpoints, the GMS, CMS and KMS, the <GMS-URI>, the GMS and CMS XCAP root URIs
 // (<group-creation-XUI> is the GMS XCAP root URI, TS 24.483 clause 8.2.9A) and
 // the MCPTT, MCVideo and MCData servers.
-func initialConfiguration(cfg *Config, domain string) (string, error) {
+func initialConfiguration(cfg *Config, domain string, user config.User) (string, error) {
 	var initial ueInitialConfig
 	initial.Domain = domain
+	if user.MCPTTID != "" {
+		initial.DefaultProfile = &ueDefaultProfile{UserID: user.MCPTTID, Index: ProfileIndex(user)}
+	}
 	on := &initial.OnNetwork
 	on.Timers.T100, on.Timers.T101, on.Timers.T103, on.Timers.T104, on.Timers.T132 = 1, 1, 4, 1, 2
 	on.HPLMN.PLMN = "001-01"
