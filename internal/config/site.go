@@ -213,13 +213,38 @@ func migrateRights(doc *Document) {
 				}
 			}
 		}
-		if data, _ := group["mcdata"].(map[string]any); data != nil {
-			_, listed := data["transmit_members"]
-			_, set := data["transmit_all"]
-			if !listed && !set {
-				data["transmit_all"] = true
-			}
+		migrateTransmit(group)
+	}
+	for index := range doc.Users {
+		migrateParticipation(doc.Users[index].Profile)
+		if video, ok := doc.Users[index].Profile["mcvideo"].(map[string]any); ok {
+			migrateParticipation(video)
 		}
+	}
+}
+
+// ------------------------------------------------------------------------------
+// migrateParticipation: a user with ad hoc call rights may take part in ad hoc group calls, as before TS 24.379
+// clause 17.4.2.2.1 step 6 (<allow-adhoc-group-call-participation>) was applied.
+func migrateParticipation(profile map[string]any) {
+	if adhoc, ok := profile["adhoc_call"].(map[string]any); ok {
+		if _, set := adhoc["participation"]; !set {
+			adhoc["participation"] = true
+		}
+	}
+}
+
+// ------------------------------------------------------------------------------
+// migrateTransmit: an MCData group without transmit_members gets transmit_all.
+func migrateTransmit(group map[string]any) {
+	data, _ := group["mcdata"].(map[string]any)
+	if data == nil {
+		return
+	}
+	_, listed := data["transmit_members"]
+	_, set := data["transmit_all"]
+	if !listed && !set {
+		data["transmit_all"] = true
 	}
 }
 

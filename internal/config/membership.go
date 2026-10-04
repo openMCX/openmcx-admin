@@ -102,14 +102,27 @@ func (doc *Document) Clone() *Document {
 // MCVideoGroups is the groups whose MCVideo members name the user, in the document's
 // group order: the CMS's MCVideo profile in admin mode (slice D4).
 func (doc *Document) MCVideoGroups(user User) []string {
+	return doc.partGroups("mcvideo", user.MCVideoID)
+}
+
+// ------------------------------------------------------------------------------
+// MCDataGroups is the groups whose MCData members name the user, in the document's group order: the <MCDataGroupInfo>
+// of the CMS's MCData user profile in admin mode (TS 24.484 clause 10.3.2.1 item 9 b).
+func (doc *Document) MCDataGroups(user User) []string {
+	return doc.partGroups("mcdata", user.MCDataID)
+}
+
+// ------------------------------------------------------------------------------
+// partGroups is the groups whose part (mcvideo or mcdata) names id among its members.
+func (doc *Document) partGroups(part, id string) []string {
 	var out []string
-	if user.MCVideoID == "" {
+	if id == "" {
 		return out
 	}
 	for _, group := range doc.Groups {
-		if video, ok := group["mcvideo"].(map[string]any); ok && slices.Contains(Members(video), user.MCVideoID) {
-			id, _ := group["id"].(string)
-			out = append(out, id)
+		if section := section(group, part); section != nil && slices.Contains(Members(section), id) {
+			groupID, _ := group["id"].(string)
+			out = append(out, groupID)
 		}
 	}
 	return out

@@ -32,6 +32,15 @@ func TestMembership(test *testing.T) {
 	if got := doc.MCVideoGroups(user(doc, "bob")); len(got) != 0 {
 		test.Fatalf("bob's MCVideo groups %v", got)
 	}
+	// The MCData groups, from the groups' MCData members.
+	doc.Groups[0]["mcdata"] = map[string]any{"members": []any{"sip:alice.mcdata@mcx.test"}}
+	if got := doc.MCDataGroups(user(doc, "alice")); !slices.Equal(got, []string{"sip:operations@mcx.test"}) {
+		test.Fatalf("alice's MCData groups %v", got)
+	}
+	if got := doc.MCDataGroups(user(doc, "bob")); len(got) != 0 {
+		test.Fatalf("bob's MCData groups %v", got)
+	}
+	delete(doc.Groups[0], "mcdata")
 	before := doc.Clone()
 	// bob leaves operations; a new group has alice and bob.
 	doc.Groups[0]["members"] = []any{"sip:alice.mcptt@mcx.test"}

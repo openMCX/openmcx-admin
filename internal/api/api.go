@@ -659,6 +659,9 @@ func (server *Server) siteUser(writer http.ResponseWriter, request *http.Request
 			if video := doc.MCVideoGroups(user); len(video) > 0 {
 				out["mcvideo_groups"] = video
 			}
+			if data := doc.MCDataGroups(user); len(data) > 0 {
+				out["mcdata_groups"] = data
+			}
 			writeJSON(writer, http.StatusOK, out)
 			return
 		}

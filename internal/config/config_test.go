@@ -140,7 +140,7 @@ func TestImportTemplates(test *testing.T) {
 func TestImportMigratesRights(test *testing.T) {
 	raw := []byte(`{"domain":"mcx.test","users":[
 		{"username":"a","mc_id":"sip:a.mc@mcx.test","mcptt_id":"sip:a@mcx.test","sip_uri":"sip:a@mcx.test","client_id":"urn:uuid:1","mcvideo_id":"sip:a.v@mcx.test"},
-		{"username":"b","mc_id":"sip:b.mc@mcx.test","mcptt_id":"sip:b@mcx.test","sip_uri":"sip:b@mcx.test","client_id":"urn:uuid:2"}],
+		{"username":"b","mc_id":"sip:b.mc@mcx.test","mcptt_id":"sip:b@mcx.test","sip_uri":"sip:b@mcx.test","client_id":"urn:uuid:2","adhoc_call":{"allow":true}}],
 		"groups":[{"id":"sip:ops@mcx.test","members":["sip:a@mcx.test","sip:b@mcx.test"],
 		"priority_policy":{"emergency_users":["sip:a@mcx.test"],"alert_cancel_users":["sip:a@mcx.test"]},
 		"mcvideo":{"members":["sip:a.v@mcx.test"],"priority_policy":{"imminent_users":["sip:a.v@mcx.test"]}},
@@ -158,6 +158,9 @@ func TestImportMigratesRights(test *testing.T) {
 	}
 	if _, granted := doc.Users[1].Profile["group_call"]; granted {
 		test.Fatalf("b was granted rights: %v", doc.Users[1].Profile)
+	}
+	if adhoc, _ := doc.Users[1].Profile["adhoc_call"].(map[string]any); adhoc["participation"] != true {
+		test.Fatalf("b's ad hoc participation: %v", doc.Users[1].Profile)
 	}
 	if data, _ := doc.Groups[0]["mcdata"].(map[string]any); data["transmit_all"] != true {
 		test.Fatalf("mcdata %v", doc.Groups[0]["mcdata"])

@@ -13,7 +13,7 @@
       "client_id": "urn:uuid:00000000-0000-0000-0000-00000000000a",
       "groups": ["sip:operations@mcx.test"],
       "private_call": {"allow": true, "automatic_commencement": true, "targets": ["sip:bob.mcptt@mcx.test"]},
-      "adhoc_call": {"allow": true},
+      "adhoc_call": {"allow": true, "participation": true},
       "regroup": true,
       "max_affiliations": 3,
       "mcdata_id": "sip:alice.mcdata@mcx.test",
