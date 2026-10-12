@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Command mcxadmin works on MCX Admin configuration documents (docs/SLICE_A.md):
 //
 //	mcxadmin import <site.json>                      document on stdout, report on stderr
@@ -8,7 +12,7 @@
 //	mcxadmin sheet <config.json> <upload.xlsx | users.csv [groups.csv]> [report dir]
 //	                                                 the new document; with row errors, the sheets back with an error column
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package main
 
 import (

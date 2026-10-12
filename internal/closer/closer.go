@@ -1,6 +1,10 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Package closer closes deferred resources whose close error can no longer change a result.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package closer
 
 import (

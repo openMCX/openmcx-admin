@@ -1,7 +1,7 @@
 # Coding style
 
-This repository follows the openMCX coding style: openmcx-server `docs/CODING_STYLE.md` (names, 3GPP references,
-separators, file and function size, formatting, tools). The Go configuration is the same (`.golangci.yml`), and so
+This repository follows the OpenMCX coding style: openmcx-server `docs/CODING_STYLE.md` (names, 3GPP references,
+separators, file and function size, formatting, tools). The Go configuration is the same (`tools/golangci.yml`), and so
 are the commands:
 
 | Command | What it does |

@@ -1,8 +1,12 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Package store keeps the configuration in MySQL (docs/SLICE_B.md): each applied
 // change is a revision holding the whole document and its change list, written
 // with its audit and outbox rows in one transaction.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package store
 
 import (

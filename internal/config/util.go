@@ -1,6 +1,10 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Small helpers of the configuration model: a byte reader and the sorted keys of a map.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package config
 
 import (

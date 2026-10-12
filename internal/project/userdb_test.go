@@ -1,6 +1,10 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Tests of the user database and Credential Service projections.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package project
 
 import (

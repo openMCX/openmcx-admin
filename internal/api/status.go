@@ -1,7 +1,11 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // The dashboard's live status: service probes, accounts, change delivery, pending activations and recent
 // activity.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package api
 
 import (

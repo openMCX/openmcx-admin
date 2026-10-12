@@ -17,7 +17,7 @@ revisions here is slice D.
 
 `openmcx-server` `tools/prepare-prearranged-test.py --admin --admin-image <image>` (and the `admin` lab of
 `tools/regress.py`): this service in the lab, with its own database on the lab's MySQL, seeded from the lab's
-`site.json`; IdMS, the CMS and the user database in admin mode. `docker build -t openmcx-admin:<tag> .` builds the
+`site.json`; IdMS, the CMS and the user database in admin mode. `docker build -t openmcx-admin:<tag> -f docker/Dockerfile .` builds the
 image.
 
 Evidence (openmcx-server `tests/integration/admin_scenario.py`, ADM-01 to ADM-04): the clients authorise and call in admin

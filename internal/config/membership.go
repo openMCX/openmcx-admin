@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // One membership: users' group lists and groups' MCPTT, MCVideo and MCData members kept in step with each other.
 //
 // Specifications: TS 24.484 V19.6.0 (Rel-19), TS 24.481 V19.3.0 (Rel-19).

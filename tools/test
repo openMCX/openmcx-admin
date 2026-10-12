@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Builds and tests mcxadmin in the openMCX development image, with a throwaway
+#
+# OpenMCX Licence Information : AGPL-3.0-or-later
+#
+
+# Builds and tests mcxadmin in the OpenMCX development image, with a throwaway
 # MySQL 8.0 (the lab's sip-db image) for the store and API tests. Nothing is
 # installed on the host; the Go module cache is the Docker volume mcxadmin-gopath.
 #   tools/test               all tests

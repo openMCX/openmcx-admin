@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Command mcxadmin-server serves the MCX Admin API (docs/SLICE_B.md).
 //
 //	mcxadmin-server --config server.json                  serve
@@ -10,7 +14,7 @@
 //	 "mysql_dsn_file": "...", "idms": {"url": "https://idms:8443", "client_id": "mcx-server", "secret_file": "...",
 //	 "ca_file": "..."}, "projections": {"userdb_file": "/shared/userdb.json"}}
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package main
 
 import (

@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Package config is the configuration model of MCX Admin: the MC user profiles and
 // groups of one MCX system, as one versioned document (docs/SLICE_A.md).
 //
@@ -54,7 +58,7 @@ var Statuses = map[string]bool{"pending": true, "active": true, "suspended": tru
 // ------------------------------------------------------------------------------
 // EffectiveProfile is the user's template with its own profile merged over it: the rights the servers read and
 // the CMS renders in the user profile documents (TS 24.484 clause 8.3, clause 9.3 and clause 10.3). Templates
-// are openMCX's own.
+// are OpenMCX's own.
 func (doc *Document) EffectiveProfile(user User) map[string]any {
 	base := map[string]any{}
 	if user.Template != "" {

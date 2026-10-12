@@ -1,4 +1,8 @@
-// openMCX Admin console (slice E1). Calls the /v1 API with the session cookie; every
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
+// OpenMCX Admin console (slice E1). Calls the /v1 API with the session cookie; every
 // request carries X-MCX-Admin, which the server requires for writes.
 "use strict";
 

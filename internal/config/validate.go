@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Validation of a configuration document: identities unique and well formed, references resolved, no secret.
 //
 // Specifications: TS 23.280 V19.10.1 (Rel-19).
@@ -29,7 +33,7 @@ var secretKey = regexp.MustCompile(`(?i)(password|passwd|secret|private_?key|cer
 
 // ------------------------------------------------------------------------------
 // Validate checks a document: identities unique and well formed (an MC service ID is a URI, TS 23.280 clause
-// 8.1.2, and openMCX requires sip: URIs for it, the MC ID, the SIP URI and the MC service group ID of TS 23.280
+// 8.1.2, and OpenMCX requires sip: URIs for it, the MC ID, the SIP URI and the MC service group ID of TS 23.280
 // clause 8.1.3.1), references resolved, and no secret anywhere.
 func (doc *Document) Validate() []Problem {
 	check := &validation{doc: doc, owner: map[string]string{}, groups: map[string]bool{},

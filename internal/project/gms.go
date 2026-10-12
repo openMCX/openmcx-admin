@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // The GMS projection: each revision's groups written to the GMS, and the group changes users made there by XCAP
 // taken back in.
 //

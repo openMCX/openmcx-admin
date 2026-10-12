@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Package activation builds what a one-time activation URL delivers (slice F1, plan
 // section 10): the bootstrap package of one account's client. It holds the system's
 // endpoints and service identities, the account's identities, the trust root and
@@ -45,7 +49,7 @@ type Config struct {
 }
 
 // ------------------------------------------------------------------------------
-// Package is the bootstrap package of one user, in openMCX's own format "openmcx-activation-1": the system's
+// Package is the bootstrap package of one user, in OpenMCX's own format "openmcx-activation-1": the system's
 // endpoints, the user's identities and first group, the trust root and the UE initial configuration document.
 func Package(cfg *Config, doc *config.Document, user config.User) (map[string]any, error) {
 	root, err := os.ReadFile(cfg.TrustRootFile)

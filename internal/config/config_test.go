@@ -1,6 +1,10 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Tests of the configuration model: the site.json round trip, validation, the change preview and templates.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package config
 
 import (

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Check the Go code against the openMCX coding style (docs/CODING_STYLE.md): golangci-lint in the
+#
+# OpenMCX Licence Information : AGPL-3.0-or-later
+#
+
+# Check the Go code against the OpenMCX coding style (docs/CODING_STYLE.md): golangci-lint in the
 # openmcx-lint image, with the module cache in the Docker volume mcxadmin-gopath (as tools/test).
 #   tools/lint            report (exit 0) and count per check; findings in artifacts/lint/go.txt
 #   tools/lint --strict   fail on any finding
@@ -9,7 +13,7 @@ mkdir -p artifacts/lint
 docker volume create mcxadmin-gopath >/dev/null
 docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -e GOCACHE=/gopath/cache -e GOPATH=/gopath -e GOFLAGS=-modcacherw \
   -v mcxadmin-gopath:/gopath -v "$PWD:/src" -w /src openmcx-lint:0.1 bash -c '
-golangci-lint run --max-issues-per-linter 0 --max-same-issues 0 --output.text.path stdout ./... > artifacts/lint/go.txt 2>&1
+golangci-lint run --config tools/golangci.yml --max-issues-per-linter 0 --max-same-issues 0 --output.text.path stdout ./... > artifacts/lint/go.txt 2>&1
 echo "Go (golangci-lint): $(grep -cE "^[^ ].*\.go:[0-9]+:" artifacts/lint/go.txt) findings"
 grep -oE "\((varnamelen|funlen|gocognit|govet|staticcheck|errcheck)\)$" artifacts/lint/go.txt | sort | uniq -c | sort -rn'
 echo "details: artifacts/lint/go.txt"

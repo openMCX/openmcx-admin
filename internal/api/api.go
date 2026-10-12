@@ -1,6 +1,10 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Package api is the /v1 HTTP API of MCX Admin (docs/SLICE_B.md).
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package api
 
 import (

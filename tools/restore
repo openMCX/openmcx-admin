@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# OpenMCX Licence Information : AGPL-3.0-or-later
+#
+
 # Restores an MCX Admin store from tools/backup's file into the MySQL container, replacing
 # the database. Stop mcxadmin-server first and start it after: it applies any newer
 # migrations, and its consumers re-apply what the outbox holds (docs/OPERATIONS.md).

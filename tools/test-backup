@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# OpenMCX Licence Information : AGPL-3.0-or-later
+#
+
 # Proves a backup restores the same store: seeds a store with mcxadmin-server --import
 # on a throwaway MySQL 8.0, commits nothing else, backs it up, drops the database,
 # restores it and compares every table's rows. Nothing is installed on the host.

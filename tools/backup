@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# OpenMCX Licence Information : AGPL-3.0-or-later
+#
+
 # Backs up the MCX Admin store (its own database on the MySQL it shares) to a file:
 # a consistent snapshot of revisions, outbox, audit, activations and GMS versions.
 # It holds no password, key or token: MCX Admin stores none (docs/OPERATIONS.md).

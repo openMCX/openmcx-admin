@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Tests of the GMS projection: writes per revision, retry after a refusal, and the import of XCAP changes.
 //
 // Specifications: TS 24.481 V19.3.0 (Rel-19).

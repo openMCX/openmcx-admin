@@ -1,8 +1,12 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Package project keeps the consumers of the store up to date (slice C): after each
 // revision, a consumer receives the configuration it needs, and its outbox rows are
 // marked applied. This file: the users file of the Diameter user database.
 //
-// openMCX administration (no 3GPP specification); the user database's refusal of an unknown user is TS 29.283's
+// OpenMCX administration (no 3GPP specification); the user database's refusal of an unknown user is TS 29.283's
 // (cited, its text not kept locally).
 package project
 

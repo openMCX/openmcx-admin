@@ -1,7 +1,11 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Package storetest gives tests a store on a throwaway MySQL database (tools/test starts the server and sets
 // MCXADMIN_TEST_MYSQL); without it the test is skipped.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package storetest
 
 import (

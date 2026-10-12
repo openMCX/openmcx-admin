@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Tests of the console sign-in: the pages, the code flow with PKCE, the callback and the logout.
 //
 // Specifications: TS 33.180 V19.4.0 (Rel-19), RFC 7636.

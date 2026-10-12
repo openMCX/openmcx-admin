@@ -1,6 +1,10 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Tests of the bulk upload: rows applied, problems per row, the header, XLSX against CSV and 10,000 users.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package sheet
 
 import (

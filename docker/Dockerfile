@@ -1,4 +1,8 @@
-# The MCX Admin service for openMCX labs: built on the openMCX development image (openMCX/openmcx-server
+#
+# OpenMCX Licence Information : AGPL-3.0-or-later
+#
+
+# The MCX Admin service for OpenMCX labs: built on the OpenMCX development image (OpenMCX/openmcx-server
 # docker/Dockerfile.dev), run on a slim Ubuntu image like the servers.
 FROM openmcx-dev:0.1 AS build
 WORKDIR /src

@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Package web is the MCX Admin console (slice E1): pages embedded in the binary,
 // which call the /v1 API in the browser. Sign-in is the IdMS authorization code
 // flow with PKCE, run by this server: it sees the code, never the password, and

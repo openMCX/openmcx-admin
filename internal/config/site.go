@@ -1,7 +1,11 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // The site.json bridge: a site.json imported as a configuration document, and a document given back as the
 // users and groups the servers read from site.json.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package config
 
 import (

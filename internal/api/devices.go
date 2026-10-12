@@ -1,7 +1,11 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Revoke devices: the Credential Service revokes a user's device certificates and SIP credential, and IdMS the
 // user's refresh tokens.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package api
 
 import (

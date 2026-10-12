@@ -1,4 +1,8 @@
-/* openMCX Admin console. System fonts only: the console works offline. */
+/*
+ * OpenMCX Licence Information : AGPL-3.0-or-later
+ */
+
+/* OpenMCX Admin console. System fonts only: the console works offline. */
 :root {
   --bg: #f3f4f6; --panel: #ffffff; --ink: #15171c; --muted: #5d6472; --line: #dde0e6; --soft: #eef0f3;
   --brand: #ffc58a; --brand-ink: #15171c; --accent: #c2530f; --accent-ink: #ffffff; --accent-soft: #fde9d6;

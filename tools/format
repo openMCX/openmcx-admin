@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# OpenMCX Licence Information : AGPL-3.0-or-later
+#
+
 # Format the Go code (gofmt), in the openmcx-lint image (nothing on the host).
 #   tools/format           rewrite the files
 #   tools/format --check   change nothing; list what is not formatted and fail if anything is

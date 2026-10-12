@@ -1,8 +1,12 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Package sheet reads the bulk-upload spreadsheet (CSV or XLSX) into the
 // configuration model: one row per user, one row per group. Rights are never
 // written in a cell: each user row names a template, which carries them.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package sheet
 
 import (

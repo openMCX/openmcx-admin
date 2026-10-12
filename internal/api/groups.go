@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Groups and templates of the API (slice D5): listed, created or replaced and deleted, each change a revision.
 //
 // Specifications: TS 24.481 V19.3.0 (Rel-19), TS 23.280 V19.10.1 (Rel-19).

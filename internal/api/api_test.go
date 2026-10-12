@@ -1,7 +1,11 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // Tests of the API: sign-in, writes, uploads, rollback, accounts and links, activation, the console session,
 // status, groups and templates, audit, load, device revocation and presence.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package api
 
 import (

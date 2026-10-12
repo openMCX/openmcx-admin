@@ -1,7 +1,11 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // The Credential Service projection: account status changes turned into suspending, resuming or removing the
 // account's SIP credential.
 //
-// openMCX administration (no 3GPP specification).
+// OpenMCX administration (no 3GPP specification).
 package project
 
 import (

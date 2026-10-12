@@ -1,3 +1,7 @@
+//
+// OpenMCX Licence Information : AGPL-3.0-or-later
+//
+
 // IdMS for MCX Admin: access token introspection, the administrator check, one-time password links and the
 // revocation of a user's sessions.
 //
@@ -68,7 +72,7 @@ var errNotAdmin = errors.New("not an administrator")
 // ------------------------------------------------------------------------------
 // administrator admits the MCPTT ID of an active token only if that user is active and its effective profile
 // grants config_management: the MCS service administrator of TS 24.484 clause 4.1. The config_management right
-// itself is openMCX's own, not a TS 24.484 element. It returns the user's login, the actor recorded in revisions
+// itself is OpenMCX's own, not a TS 24.484 element. It returns the user's login, the actor recorded in revisions
 // and audit.
 func administrator(doc *config.Document, mcpttID string) (string, error) {
 	for _, user := range doc.Users {
