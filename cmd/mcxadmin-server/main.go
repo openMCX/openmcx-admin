@@ -84,6 +84,7 @@ func main() {
 	importSite := flag.String("import", "", "seed an empty store from this site.json and exit")
 	seedSite := flag.String("seed", "", "seed the store from this site.json if it is empty, then serve")
 	flag.Parse()
+	applyDefaultTLSProfile()
 	if err := run(*configPath, *importSite, *seedSite); err != nil {
 		log.Fatalf("mcxadmin-server: %v", err)
 	}
@@ -135,7 +136,7 @@ func run(configPath, importSite, seedSite string) error {
 		return err
 	}
 	httpServer := &http.Server{Addr: cfg.Listen, Handler: srv.Handler(), ReadHeaderTimeout: 10 * time.Second,
-		TLSConfig: &tls.Config{MinVersion: tls.VersionTLS12}}
+		TLSConfig: tlsProfile(&tls.Config{})}
 	log.Printf("mcxadmin-server listening on %s for %s", cfg.Listen, cfg.Domain)
 	return httpServer.ListenAndServeTLS(cfg.TLSCert, cfg.TLSKey)
 }
@@ -203,7 +204,7 @@ func newServer(cfg *serverConfig, st *store.Store) (*api.Server, error) {
 		if err != nil {
 			return nil, fmt.Errorf("idms.ca_file: %w", err)
 		}
-		client.Transport = &http.Transport{TLSClientConfig: &tls.Config{RootCAs: pool, MinVersion: tls.VersionTLS12}}
+		client.Transport = &http.Transport{TLSClientConfig: tlsProfile(&tls.Config{RootCAs: pool})}
 	}
 	if cfg.Activation != nil {
 		// The link pins this service's own certificate (slice F2).
@@ -331,5 +332,5 @@ func clientWithCertificate(caFile, certFile, keyFile string) (*http.Client, erro
 		return nil, err
 	}
 	return &http.Client{Timeout: 5 * time.Second, Transport: &http.Transport{
-		TLSClientConfig: &tls.Config{RootCAs: pool, Certificates: []tls.Certificate{cert}, MinVersion: tls.VersionTLS12}}}, nil
+		TLSClientConfig: tlsProfile(&tls.Config{RootCAs: pool, Certificates: []tls.Certificate{cert}})}}, nil
 }
