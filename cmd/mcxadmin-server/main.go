@@ -207,6 +207,10 @@ func newServer(cfg *serverConfig, st *store.Store) (*api.Server, error) {
 		client.Transport = &http.Transport{TLSClientConfig: tlsProfile(&tls.Config{RootCAs: pool})}
 	}
 	if cfg.Activation != nil {
+		// TS 24.484 clause 7.2.2.7 items 7 and 8: the XCAP root URIs come from the configuration, never derived.
+		if cfg.Activation.XCAPRoots["gms"] == "" || cfg.Activation.XCAPRoots["cms"] == "" {
+			return nil, fmt.Errorf("activation.xcap_roots needs the gms and cms XCAP root URIs")
+		}
 		// The link pins this service's own certificate (slice F2).
 		pin, err := certificatePin(cfg.TLSCert)
 		if err != nil {

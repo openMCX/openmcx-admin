@@ -309,7 +309,8 @@ func testActivation(test *testing.T) *activation.Config {
 	_ = os.WriteFile(root, []byte("-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----\n"), 0o600)
 	activationConfig := &activation.Config{BaseURL: "https://mcxadmin.mcx.test:8443", SIPCoreURI: "sip:kamailio:5060;transport=tcp",
 		CredentialsURL: "https://credentials:8443", TrustRootFile: root,
-		Endpoints: map[string]string{"cms": "https://cms:8443", "gms": "https://gms:8443", "kms": "https://kms:8443"}}
+		Endpoints: map[string]string{"cms": "https://cms:8443", "gms": "https://gms:8443", "kms": "https://kms:8443"},
+		XCAPRoots: map[string]string{"cms": "https://cms:8443/xcap-root", "gms": "https://gms:8443/xcap-root"}}
 	activationConfig.IdMS.Issuer, activationConfig.IdMS.ClientID, activationConfig.IdMS.RedirectURI = "https://idms:8443", "mcx-client", "http://127.0.0.1/cb"
 	activationConfig.Pin = "cGlucGlucGlucGlucGlucGlucGlucGlucGlucGlucGlu"
 	activationConfig.Services.MCPTT, activationConfig.Services.MCData = "sip:mcptt@mcx.test", "sip:mcdata@mcx.test"

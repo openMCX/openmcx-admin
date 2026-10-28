@@ -43,9 +43,25 @@ type Config struct {
 		MCData  string `json:"mcdata,omitempty"`
 		MCVideo string `json:"mcvideo,omitempty"`
 	} `json:"services"`
-	// The endpoints a client uses (cms, gms, kms, ...), as its configuration names them.
-	Endpoints     map[string]string `json:"endpoints"`
+	// The endpoints a client uses (cms, gms, kms, ...), as its configuration names them: the URIs used to contact
+	// each server (TS 24.484 clause 7.2.2.7 item 4, <gms>, <cms>, <kms>).
+	Endpoints map[string]string `json:"endpoints"`
+	// The GMS and CMS XCAP root URIs (TS 24.484 clause 7.2.2.7 items 7 and 8, <GMS-XCAP-root-URI> and
+	// <CMS-XCAP-root-URI>) under "gms" and "cms", used as given: a client takes them as its cms and gms endpoints.
+	XCAPRoots     map[string]string `json:"xcap_roots"`
 	TrustRootFile string            `json:"trust_root_file"`
+	// GMSURI: the <GMS-URI> of the UE initial configuration (TS 24.484 clause 7.2.2.1 item 4, TS 24.483 clause 8.2.9),
+	// the GMS subscription proxy PSI; the MCPTT PSI when not set (the MCPTT server provides that function).
+	GMSURI string `json:"gms_uri,omitempty"`
+	// UEProtection: the UE-wide <integrity-protection-enabled> and <confidentiality-protection-enabled> of the UE
+	// initial configuration (TS 24.484 clause 7.2.2.1 items 8 and 9, TS 24.483 clauses 8.2.44E and 8.2.44F), the
+	// deployment's own values. They are not derived from the per-service <signalling-protection> of the service
+	// configuration documents: no clause defines how differing service values would combine into this pair. "false"
+	// when not set, as before.
+	UEProtection struct {
+		Integrity       bool `json:"integrity_protection_enabled"`
+		Confidentiality bool `json:"confidentiality_protection_enabled"`
+	} `json:"ue_initial_protection"`
 }
 
 // ------------------------------------------------------------------------------
@@ -76,7 +92,7 @@ func Package(cfg *Config, doc *config.Document, user config.User) (map[string]an
 		// The device's TLS client certificate comes from the Credential Service too
 		// (POST <credentials_url>/v1/client-certificate with a PKCS#10 request).
 		"certificate_url": strings.TrimSuffix(cfg.CredentialsURL, "/") + "/v1/client-certificate",
-		"endpoints":       cfg.Endpoints,
+		"endpoints":       clientEndpoints(cfg),
 		"trust_root":      string(root),
 	}
 	if user.MCDataID != "" && cfg.Services.MCData != "" {
@@ -98,8 +114,8 @@ func Package(cfg *Config, doc *config.Document, user config.User) (map[string]an
 }
 
 // The <mcptt-UE-initial-configuration> of TS 24.484 clause 7.2.2.1, in the form openmcx-server serves:
-// the application servers, the XCAP roots and the service identities. The lab has no PLMN or
-// document protection, so those elements carry fixed lab values.
+// the application servers, the XCAP roots and the service identities. The lab has no PLMN, so those elements carry
+// fixed lab values.
 type ueInitialConfig struct {
 	XMLName xml.Name `xml:"urn:3gpp:mcptt:mcpttUEinitConfig:1.0 mcptt-UE-initial-configuration"`
 	Domain  string   `xml:"domain,attr"`
@@ -175,6 +191,22 @@ type serviceDetails struct {
 }
 
 // ------------------------------------------------------------------------------
+// clientEndpoints: the endpoints of an activation package: the configured endpoints, with the GMS and CMS XCAP root
+// URIs as the client's gms and cms endpoints (TS 24.484 clause 7.2.2.7 items 7 and 8).
+func clientEndpoints(cfg *Config) map[string]string {
+	out := make(map[string]string, len(cfg.Endpoints))
+	for name, uri := range cfg.Endpoints {
+		out[name] = uri
+	}
+	for _, name := range []string{"gms", "cms"} {
+		if root := cfg.XCAPRoots[name]; root != "" {
+			out[name] = root
+		}
+	}
+	return out
+}
+
+// ------------------------------------------------------------------------------
 // initialConfiguration renders the MCS UE initial configuration document of TS 24.484 clause 7.2 with the data
 // semantics of TS 24.484 clause 7.2.2.7: the timers T100, T101, T103, T104 and T132 in seconds, the IdMS
 // authorization and token endpoints, the GMS, CMS and KMS, the <GMS-URI>, the GMS and CMS XCAP root URIs
@@ -193,9 +225,15 @@ func initialConfiguration(cfg *Config, domain string, user config.User) (string,
 	issuer := strings.TrimSuffix(cfg.IdMS.Issuer, "/")
 	on.AppServer.AuthEndpoint, on.AppServer.TokenEndpoint = issuer+"/authorize", issuer+"/token"
 	on.AppServer.GMS, on.AppServer.CMS, on.AppServer.KMS = cfg.Endpoints["gms"], cfg.Endpoints["cms"], cfg.Endpoints["kms"]
-	on.GMSURI = cfg.Services.MCPTT
-	on.GMSRoot = strings.TrimSuffix(cfg.Endpoints["gms"], "/") + "/xcap-root"
-	on.CMSRoot = strings.TrimSuffix(cfg.Endpoints["cms"], "/") + "/xcap-root"
+	on.GMSURI = cfg.GMSURI
+	if on.GMSURI == "" {
+		on.GMSURI = cfg.Services.MCPTT
+	}
+	on.IntegrityProtection, on.ConfidentialityProtection = cfg.UEProtection.Integrity, cfg.UEProtection.Confidentiality
+	on.GMSRoot, on.CMSRoot = cfg.XCAPRoots["gms"], cfg.XCAPRoots["cms"]
+	if on.GMSRoot == "" || on.CMSRoot == "" {
+		return "", fmt.Errorf("activation: xcap_roots needs the gms and cms XCAP root URIs")
+	}
 	on.GroupCreationXUI = on.GMSRoot
 	on.AnyExt.MCPTT = &serviceDetails{ServerURI: cfg.Services.MCPTT}
 	if cfg.Services.MCVideo != "" {
