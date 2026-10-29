@@ -97,11 +97,31 @@ func TestInitialConfigurationGMSURIAndProtection(test *testing.T) {
 	}
 	for _, want := range []string{
 		"<GMS-URI>sip:gms-proxy@mcx.test</GMS-URI>",
+		"<http-proxy></http-proxy>",
+		"<tls-tunnel-auth-method><mutual-authentication>false</mutual-authentication></tls-tunnel-auth-method>",
 		"<integrity-protection-enabled>true</integrity-protection-enabled>",
 		"<confidentiality-protection-enabled>false</confidentiality-protection-enabled>",
 	} {
 		if !strings.Contains(initial, want) {
 			test.Fatalf("missing %s in %s", want, initial)
 		}
+	}
+}
+
+// TestInitialConfigurationHTTPProxy: <http-proxy> is the configured home HTTP proxy (TS 24.484 clause 7.2.2.1 item 3
+// c)), with one-way TLS tunnel authentication (item 3 g), TS 24.483 clause 8.2.44B), in the schema's order.
+func TestInitialConfigurationHTTPProxy(test *testing.T) {
+	cfg := testConfig()
+	cfg.Services.MCPTT = "sip:mcptt@mcx.test"
+	cfg.HTTPProxy = "https://proxy.mcx.test:8443"
+	initial, err := initialConfiguration(cfg, "mcx.test", config.User{MCPTTID: "sip:bob.mcptt@mcx.test"})
+	if err != nil {
+		test.Fatal(err)
+	}
+	proxy := strings.Index(initial, "<http-proxy>https://proxy.mcx.test:8443</http-proxy>")
+	gms, tunnel := strings.Index(initial, "<gms>"), strings.Index(initial, "<tls-tunnel-auth-method>")
+	if proxy < 0 || gms < proxy || tunnel < gms ||
+		!strings.Contains(initial, "<mutual-authentication>false</mutual-authentication>") {
+		test.Fatalf("home HTTP proxy not in the UE initial configuration: %s", initial)
 	}
 }

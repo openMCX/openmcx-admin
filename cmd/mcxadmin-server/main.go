@@ -31,6 +31,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -210,6 +211,14 @@ func newServer(cfg *serverConfig, st *store.Store) (*api.Server, error) {
 		// TS 24.484 clause 7.2.2.7 items 7 and 8: the XCAP root URIs come from the configuration, never derived.
 		if cfg.Activation.XCAPRoots["gms"] == "" || cfg.Activation.XCAPRoots["cms"] == "" {
 			return nil, fmt.Errorf("activation.xcap_roots needs the gms and cms XCAP root URIs")
+		}
+		// TS 24.482 annex A.2.1.2: the home HTTP proxy's FQDN and port, as an https URI (TS 24.483 clause 8.2.41B).
+		if proxy := cfg.Activation.HTTPProxy; proxy != "" {
+			parsed, err := url.Parse(proxy)
+			if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil ||
+				(parsed.Path != "" && parsed.Path != "/") || parsed.RawQuery != "" || parsed.Fragment != "" {
+				return nil, fmt.Errorf("activation.http_proxy must be an https URI with the proxy's FQDN and port only")
+			}
 		}
 		// The link pins this service's own certificate (slice F2).
 		pin, err := certificatePin(cfg.TLSCert)

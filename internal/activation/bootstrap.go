@@ -53,6 +53,12 @@ type Config struct {
 	// GMSURI: the <GMS-URI> of the UE initial configuration (TS 24.484 clause 7.2.2.1 item 4, TS 24.483 clause 8.2.9),
 	// the GMS subscription proxy PSI; the MCPTT PSI when not set (the MCPTT server provides that function).
 	GMSURI string `json:"gms_uri,omitempty"`
+	// HTTPProxy: the <http-proxy> of the UE initial configuration (TS 24.484 clause 7.2.2.1 item 3 c), TS 24.483 clause
+	// 8.2.41B), the home HTTP proxy every client HTTP request but the IdMS's goes through (TS 24.482 annex A.2.1.2); an
+	// https URI with its FQDN and port. Empty when not set: clients contact the servers directly, as before. The TLS
+	// tunnel authentication is one-way (<mutual-authentication> "false", TS 24.483 clause 8.2.44B): MCX Admin issues
+	// no keys.
+	HTTPProxy string `json:"http_proxy,omitempty"`
 	// UEProtection: the UE-wide <integrity-protection-enabled> and <confidentiality-protection-enabled> of the UE
 	// initial configuration (TS 24.484 clause 7.2.2.1 items 8 and 9, TS 24.483 clauses 8.2.44E and 8.2.44F), the
 	// deployment's own values. They are not derived from the per-service <signalling-protection> of the service
@@ -225,6 +231,7 @@ func initialConfiguration(cfg *Config, domain string, user config.User) (string,
 	issuer := strings.TrimSuffix(cfg.IdMS.Issuer, "/")
 	on.AppServer.AuthEndpoint, on.AppServer.TokenEndpoint = issuer+"/authorize", issuer+"/token"
 	on.AppServer.GMS, on.AppServer.CMS, on.AppServer.KMS = cfg.Endpoints["gms"], cfg.Endpoints["cms"], cfg.Endpoints["kms"]
+	on.AppServer.HTTPProxy = cfg.HTTPProxy
 	on.GMSURI = cfg.GMSURI
 	if on.GMSURI == "" {
 		on.GMSURI = cfg.Services.MCPTT
