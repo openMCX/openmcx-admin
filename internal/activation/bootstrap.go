@@ -59,6 +59,13 @@ type Config struct {
 	// tunnel authentication is one-way (<mutual-authentication> "false", TS 24.483 clause 8.2.44B): MCX Admin issues
 	// no keys.
 	HTTPProxy string `json:"http_proxy,omitempty"`
+	// IMSAKA: the system's offer of IMS AKA for SIP core access (TS 33.180 clause 6.2.1, TS 33.203): the P-CSCF a UE
+	// with a card registers through, preconfigured as "host:port" (TS 24.229 clause 9.2.1 allows a preconfigured
+	// P-CSCF address instead of its discovery). Empty: not offered, clients register with SIP digest as before. No
+	// keys: a card's subscription and keys are the SIP core's (its setup), never MCX Admin's.
+	IMSAKA struct {
+		PCSCF string `json:"pcscf,omitempty"`
+	} `json:"ims_aka"`
 	// UEProtection: the UE-wide <integrity-protection-enabled> and <confidentiality-protection-enabled> of the UE
 	// initial configuration (TS 24.484 clause 7.2.2.1 items 8 and 9, TS 24.483 clauses 8.2.44E and 8.2.44F), the
 	// deployment's own values. They are not derived from the per-service <signalling-protection> of the service
@@ -109,6 +116,11 @@ func Package(cfg *Config, doc *config.Document, user config.User) (map[string]an
 	}
 	if len(cfg.AddressMap) > 0 {
 		out["address_map"] = cfg.AddressMap
+	}
+	// The IMS AKA offer: a client with a usable card registers through this P-CSCF; the client decides by its card
+	// and its network at each initial registration.
+	if cfg.IMSAKA.PCSCF != "" {
+		out["sip"].(map[string]string)["ims_aka_pcscf"] = cfg.IMSAKA.PCSCF
 	}
 	out["mcptt"].(map[string]string)["profile_index"] = strconv.Itoa(ProfileIndex(user))
 	initial, err := initialConfiguration(cfg, doc.System.Domain, user)

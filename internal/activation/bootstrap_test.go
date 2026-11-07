@@ -5,6 +5,7 @@
 package activation
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -123,5 +124,34 @@ func TestInitialConfigurationHTTPProxy(test *testing.T) {
 	if proxy < 0 || gms < proxy || tunnel < gms ||
 		!strings.Contains(initial, "<mutual-authentication>false</mutual-authentication>") {
 		test.Fatalf("home HTTP proxy not in the UE initial configuration: %s", initial)
+	}
+}
+
+// ------------------------------------------------------------------------------
+// TestPackageIMSAKAOffer: with activation.ims_aka.pcscf the package names the preconfigured P-CSCF of the IMS AKA
+// offer under sip (TS 24.229 clause 9.2.1); without it the package has none and is as before.
+func TestPackageIMSAKAOffer(test *testing.T) {
+	cfg := testConfig()
+	root := test.TempDir() + "/ca.pem"
+	if err := os.WriteFile(root, []byte("-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----\n"), 0o600); err != nil {
+		test.Fatal(err)
+	}
+	cfg.TrustRootFile = root
+	doc := &config.Document{System: config.System{Domain: "mcx.test"}}
+	user := config.User{Login: "alice", MCPTTID: "sip:alice.mcptt@mcx.test", SIPURI: "sip:alice@mcx.test"}
+	out, err := Package(cfg, doc, user)
+	if err != nil {
+		test.Fatal(err)
+	}
+	if _, offered := out["sip"].(map[string]string)["ims_aka_pcscf"]; offered {
+		test.Fatalf("IMS AKA offered without a P-CSCF: %v", out["sip"])
+	}
+	cfg.IMSAKA.PCSCF = "pcscf.mcx.test:5060"
+	out, err = Package(cfg, doc, user)
+	if err != nil {
+		test.Fatal(err)
+	}
+	if got := out["sip"].(map[string]string)["ims_aka_pcscf"]; got != "pcscf.mcx.test:5060" {
+		test.Fatalf("ims_aka_pcscf = %q", got)
 	}
 }

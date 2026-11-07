@@ -30,9 +30,11 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -218,6 +220,14 @@ func newServer(cfg *serverConfig, st *store.Store) (*api.Server, error) {
 			if err != nil || parsed.Scheme != "https" || parsed.Host == "" || parsed.User != nil ||
 				(parsed.Path != "" && parsed.Path != "/") || parsed.RawQuery != "" || parsed.Fragment != "" {
 				return nil, fmt.Errorf("activation.http_proxy must be an https URI with the proxy's FQDN and port only")
+			}
+		}
+		// TS 24.229 clause 9.2.1: the preconfigured P-CSCF of the IMS AKA offer, "host:port".
+		if pcscf := cfg.Activation.IMSAKA.PCSCF; pcscf != "" {
+			host, port, err := net.SplitHostPort(pcscf)
+			number, convErr := strconv.Atoi(port)
+			if err != nil || host == "" || convErr != nil || number < 1 || number > 65535 {
+				return nil, fmt.Errorf("activation.ims_aka.pcscf must be host:port")
 			}
 		}
 		// The link pins this service's own certificate (slice F2).
